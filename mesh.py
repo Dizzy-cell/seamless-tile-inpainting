@@ -327,6 +327,39 @@ bpy.context.view_layer.objects.active = grid_obj  # 确保它是活动对象
 bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
 
+# 获取当前活动对象
+obj = bpy.context.active_object
+mesh = obj.data
+verts = mesh.vertices
+
+# 获取网格尺寸
+cols = 20  # X方向顶点数量
+rows = 10  # Y方向顶点数量
+
+print(f"共有顶点数: {len(verts)}")  # 应该是 20×10 = 200
+
+print(depth_data.shape, height, width)
+
+# 464, 743
+
+# 遍历每个顶点，按 [Y 行][X 列] 顺序
+for y in range(rows + 1):
+    for x in range(cols + 1):
+        index = y * (cols + 1) + x
+        v = verts[index]
+        #print(f"Vertex[{x},{y}] → local: {v.co}")
+        
+        y_dep = round(y * 1.0 / rows * (height - 1))
+        x_dep = round(x * 1.0 / cols * (width - 1))
+        
+        z_value = depth_data[y_dep, x_dep]  # 高度缩放系数
+        
+        print(f"Vertex[{x},{y}] → local: {v.co} {z_value, y_dep, x_dep}")
+        
+        v.co.z = (z_value - 0.5) * 2
+        
+mesh.update()
+
 ## 更新变换
 #grid_obj.data.update()
 #mesh = grid_obj.data
