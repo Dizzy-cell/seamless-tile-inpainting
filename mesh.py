@@ -295,6 +295,9 @@ print("wold point", x,y, world_point)
 # 设置图像路径（替换为你自己的路径）
 image_path = "/Users/honor/OneDrive/blender/depth_heatmap.png"
 
+image_path = "/Users/honor/OneDrive/blender/person_depth.png"
+image_path = "/Users/honor/OneDrive/blender/depth_girl.png"
+
 
 # 加载图像并转换为 NumPy 数组
 img = Image.open(image_path).convert("L")  # "L" 表示灰度图
@@ -306,20 +309,25 @@ depth_data = np.flipud(depth_data)
 base_size_y = 8
 base_size_x = base_size_y * (width / height)  # 根据图像宽高比计算 X 方向长度
 
+cols = 40  # X方向顶点数量
+rows = 70  # Y方向顶点数量
+
 # 创建网格平面（默认是正方形）
 bpy.ops.mesh.primitive_grid_add(
-    x_subdivisions=20,
-    y_subdivisions=10,
+    x_subdivisions=cols,
+    y_subdivisions=rows,
     size=1.0  # 先用单位大小创建，后面再缩放
 )
 
 #(-0.5, 0.5)
 
+# 36, 50
+
 grid_obj = bpy.context.active_object
 
 ## 缩放物体以匹配图像宽高比
-grid_obj.scale.x = 2.0 * 1.8 # 因为 size 是“从中心到边缘”的距离
-grid_obj.scale.y = 1.0 * 1.8
+grid_obj.scale.x = 1.0 * 18 * 1.1# 因为 size 是“从中心到边缘”的距离
+grid_obj.scale.y = 2.0 * 18 * 1.1               
 grid_obj.scale.z = 1.0  # Z 不缩放
 
 # apply the scale
@@ -333,8 +341,7 @@ mesh = obj.data
 verts = mesh.vertices
 
 # 获取网格尺寸
-cols = 20  # X方向顶点数量
-rows = 10  # Y方向顶点数量
+
 
 print(f"共有顶点数: {len(verts)}")  # 应该是 20×10 = 200
 
@@ -356,7 +363,18 @@ for y in range(rows + 1):
         
         print(f"Vertex[{x},{y}] → local: {v.co} {z_value, y_dep, x_dep}")
         
-        v.co.z = (z_value - 0.5) * 2
+        scale = (1 - z_value) / 0.75
+        #scale = scale / 10 + 0.9
+        
+        #if scale < 0.7:
+        #    scale = 0.7
+        
+        #scale = 1
+            
+        v.co.z = 5 * (1 - scale) 
+        
+        v.co.x = v.co.x * scale
+        v.co.y = v.co.y * scale
         
 mesh.update()
 
@@ -392,35 +410,36 @@ mesh.update()
 #mesh.update()
 
 
-#    grid_obj = bpy.context.active_object
-#    mesh = grid_obj.data
 
-#    bpy.context.view_layer.objects.active = grid_obj
-#    bpy.ops.object.mode_set(mode='EDIT')
+#grid_obj = bpy.context.active_object
+#mesh = grid_obj.data
 
-#    faces_to_delete = []
+#bpy.context.view_layer.objects.active = grid_obj
+#bpy.ops.object.mode_set(mode='EDIT')
 
-#    # 获取网格数据
-#    bm = bmesh.from_edit_mesh(mesh)
+#faces_to_delete = []
 
-#    # 遍历所有面
-#    for i, face in enumerate(bm.faces):
+##    # 获取网格数据
+#bm = bmesh.from_edit_mesh(mesh)
+
+##    # 遍历所有面
+#for i, face in enumerate(bm.faces):
 #        # 获取面的中心坐标
 #        # center = face.calc_center_median()
 #        
-#        z = None
-#        for vert in face.verts:
-#            if z is None:
-#                z = vert.co.z
-#            elif z != vert.co.z:
-#                faces_to_delete.append(face)
-#                break
+#    z = None
+#    for vert in face.verts:
+#        if z is None:
+#            z = vert.co.z
+#        elif z != vert.co.z:
+#            faces_to_delete.append(face)
+#            break
 
-#    print(faces_to_delete)
+#print(faces_to_delete)
 
-#    # 删除指定的面
-#    bmesh.ops.delete(bm, geom=faces_to_delete, context='FACES')
+##    # 删除指定的面
+#bmesh.ops.delete(bm, geom=faces_to_delete, context='FACES')
 
-#    # 更新网格并返回物体模式
-#    bmesh.update_edit_mesh(mesh)
-#    bpy.ops.object.mode_set(mode='OBJECT')
+##    # 更新网格并返回物体模式
+#bmesh.update_edit_mesh(mesh)
+#bpy.ops.object.mode_set(mode='OBJECT')
